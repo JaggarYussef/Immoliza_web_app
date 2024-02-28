@@ -1,96 +1,37 @@
 import joblib
 import pandas as pd
+from sklearn.ensemble import HistGradientBoostingRegressor  # NEW
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression  # OLD
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-import numpy as np
-from sklearn.preprocessing import StandardScaler
 
 
 def train():
     """Trains a linear regression model on the full dataset and stores output."""
     # Load the data
-    data = pd.read_csv("properties.csv")
+    data = pd.read_csv("app/model/properties.csv")
 
     # Define features to use
     num_features = [
         "total_area_sqm",
+        #"nbr_bedrooms",
         # "latitude",
         # "longitude",
-        # "surface_land_sqm",
-        # "garden_sqm",
+        #"zip_code",
         "primary_energy_consumption_sqm",
-        # "construction_year",
-        # "cadastral_income",
-        # "nbr_frontages",
-        # "nbr_bedrooms",
-        # "terrace_sqm",
+        #"surface_land_sqm",
     ]
-    # fl_features = [
-    #     "fl_garden",
-    #     "fl_furnished",
-    #     "fl_open_fire",
-    #     "fl_terrace",
-    #     "fl_swimming_pool",
-    #     "fl_floodzone",
-    #     "fl_double_glazing",
-    # ]
-    # cat_features = [
-    #     "property_type",
-    #     "subproperty_type",
-    #     "region",
-    #     "province",
-    #     "locality",
-    #     "zip_code",
-    #     "state_building",
-    #     "epc",
-    #     "heating_type",
-    #     "equipped_kitchen"
-    # ]
-
-    # Outliers handling
-    Q1 = data["price"].quantile(0.25)
-    Q3 = data["price"].quantile(0.75)
-    IQR = Q3 - Q1
-
-    max_value = Q3 + (1.5 * IQR)
-    min_value = Q1 - (1.5 * IQR)
-
-    outliers_mask = (data["price"] < min_value) | (data["price"] > max_value)
-    data.loc[outliers_mask, "price"] = np.nan
-
-    data.dropna(subset=["price"], inplace=True)
-
-    Q1 = data["primary_energy_consumption_sqm"].quantile(0.25)
-    Q3 = data["primary_energy_consumption_sqm"].quantile(0.75)
-    IQR = Q3 - Q1
-
-    max_value = Q3 + (1.5 * IQR)
-    min_value = Q1 - (1.5 * IQR)
-
-    outliers_mask = (data["primary_energy_consumption_sqm"] < min_value) | (
-        data["primary_energy_consumption_sqm"] > max_value
-    )
-    data.loc[outliers_mask, "primary_energy_consumption_sqm"] = np.nan
-
-    data.dropna(subset=["primary_energy_consumption_sqm"], inplace=True)
-
-    # data = data[data["nbr_bedrooms"] < 25]
-
-    # data = data[data["total_area_sqm"] < 200]
-
-    # data = data[data["longitude"] > 0]
-
-    # Drop missing values from cat_features
-
-    # for feature in data[cat_features]:
-    #     data[feature].replace("MISSING", None)
-    #     data[feature].dropna()
+    fl_features = []
+    #     "fl_garden", 
+    #     "fl_terrace", 
+    #     "fl_swimming_pool", 
+    #     "fl_floodzone"]
+    cat_features = [] # "property_type"
 
     # Split the data into features and target
-    X = data[num_features]
+    X = data[num_features] # + fl_features + cat_features]
     y = data["price"]
 
     # Split the data into training and testing sets
@@ -104,38 +45,33 @@ def train():
     X_train[num_features] = imputer.transform(X_train[num_features])
     X_test[num_features] = imputer.transform(X_test[num_features])
 
-    # Standardizing the numerical features
-    scaler = StandardScaler()
-    X_train[num_features] = scaler.fit_transform(X_train[num_features])
-    X_test[num_features] = scaler.transform(X_test[num_features])
-
     # Convert categorical columns with one-hot encoding using OneHotEncoder
-    # enc = OneHotEncoder(handle_unknown='ignore')
-    # enc.fit(X_train[cat_features])
-    # X_train_cat = enc.transform(X_train[cat_features]).toarray()
-    # X_test_cat = enc.transform(X_test[cat_features]).toarray()
+    enc = OneHotEncoder()
+    enc.fit(X_train[cat_features])
+    X_train_cat = enc.transform(X_train[cat_features]).toarray()
+    X_test_cat = enc.transform(X_test[cat_features]).toarray()
 
-    # # Combine the numerical and one-hot encoded categorical columns
-    # X_train = pd.concat(
-    #     [
-    #         X_train[num_features + fl_features].reset_index(drop=True),
-    #         pd.DataFrame(X_train_cat, columns=enc.get_feature_names_out()),
-    #     ],
-    #     axis=1,
-    # )
+    # Combine the numerical and one-hot encoded categorical columns
+    X_train = pd.concat(
+        [
+            X_train[num_features + fl_features].reset_index(drop=True),
+            pd.DataFrame(X_train_cat, columns=enc.get_feature_names_out()),
+        ],
+        axis=1,
+    )
 
-    # X_test = pd.concat(
-    #     [
-    #         X_test[num_features + fl_features].reset_index(drop=True),
-    #         pd.DataFrame(X_test_cat, columns=enc.get_feature_names_out()),
-    #     ],
-    #     axis=1,
-    # )
+    X_test = pd.concat(
+        [
+            X_test[num_features + fl_features].reset_index(drop=True),
+            pd.DataFrame(X_test_cat, columns=enc.get_feature_names_out()),
+        ],
+        axis=1,
+    )
 
     print(f"Features: \n {X_train.columns.tolist()}")
 
-    # Train the model
-    model = LinearRegression()
+    # Train the model using HistGradientBoostingRegressor
+    model = HistGradientBoostingRegressor()
     model.fit(X_train, y_train)
 
     # Evaluate the model
@@ -148,15 +84,14 @@ def train():
     artifacts = {
         "features": {
             "num_features": num_features,
-            # "fl_features": fl_features,
-            # "cat_features": cat_features,
+            "fl_features": fl_features,
+            "cat_features": cat_features,
         },
         "imputer": imputer,
-        # "enc": enc,
+        "enc": enc,
         "model": model,
-        "scaler": scaler,
     }
-    joblib.dump(artifacts, "artifacts.joblib")
+    joblib.dump(artifacts, "app/model/artifacts.joblib")
 
 
 if __name__ == "__main__":
