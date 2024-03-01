@@ -1,54 +1,103 @@
 import streamlit as st
 import requests
 
-st.title('Immo Eliza: Property Price Predictor')
+def main():
+    st.title('Immoliza: Property Price Predictor!')
+    st.write("This calculator helps you estimate the price of a property based on various factors. "
+             "Please select the type of property and its amenities to get started.")
+    st.markdown('##### Choose some features to start the price prediction')
 
-# Define the input fields for the property attributes
-#nbr_bedrooms = st.number_input('Number of Bedrooms', min_value=1, value=2)
-total_area_sqm = st.number_input('Total Area (sqm)', value=120.0)
-#surface_land_sqm = st.number_input('Surface Land (sqm)', value=100.0)
-#latitude = st.number_input('Latitude', value=0.0)
-#longitude = st.number_input('Longitude', value=0.0)
-primary_energy_consumption_sqm = st.number_input('Primary Energy Consumption', min_value=100, value=2000)
+    # Property type selection 
+    property_type_options = ['', 'House', 'Apartment', 'Villa', 'Mansion']
+    property_type = st.selectbox(
+        "Property Type:",
+        property_type_options,
+        index=0,
+        format_func=lambda x: "Select Property Type" if x == '' else x + " 🏠" if x == "House" else x + " 🏢" if x == "Apartment" else x + " 🏰" if x == "Villa" else x + " 🏛️" if x == "Mansion" else x
+    )
 
-# Additional model features
-#zip_code = st.text_input('ZIP Code')
-#primary_energy_consumption_sqm = st.number_input('Primary Energy Consumption (sqm)')
-# fl_garden = st.checkbox('Garden')
-# fl_terrace = st.checkbox('Terrace')
-# fl_swimming_pool = st.checkbox('Swimming Pool')
-# fl_floodzone = st.checkbox('Flood Zone')
-# property_type = st.selectbox('Property Type', ['Apartment', 'House', 'Villa'])
+    # Latitude and Longitude (To Replace with a map)
+    col1, col2 = st.columns(2)
+    with col1:
+        latitude = st.number_input('Latitude', value=0.0, format="%.5f")
+    with col2:
+        longitude = st.number_input('Longitude', value=0.0, format="%.5f")
 
-# When the 'Predict' button is clicked
-if st.button('Predict the property price'):
-    # The API endpoint URL
-    url = 'https://immoliza-web-app.onrender.com/predict'
-    
-    # The data to be sent to the API
+    # Region and Zip Code
+    col1, col2 = st.columns(2)
+    with col1:
+        region_options = ['', 'Brussels', 'Flanders', 'Wallonia']
+        region = st.selectbox('Region', region_options, index=0, format_func=lambda x: "Select Region" if x == '' else x)
+    with col2:
+        zip_code = st.text_input('ZIP Code', '')
+
+    # Locality and Subproperty Type
+    col1, col2 = st.columns(2)
+    with col1:
+        locality_options = ['', 'City Center', 'Suburbs', 'Countryside']
+        locality = st.selectbox('Locality', locality_options, index=0, format_func=lambda x: "Select Locality" if x == '' else x)
+    with col2:
+        subproperty_type_options = ['', 'Bungalow', 'Duplex', 'Loft', 'Penthouse']
+        subproperty_type = st.selectbox('Subproperty Type', subproperty_type_options, index=0, format_func=lambda x: "Select Subproperty Type" if x == '' else x)
+
+    # Total Area and Bedrooms
+    total_area_sqm = st.slider('Total Area (sqm)', min_value=0, max_value=1000, value=120)
+    nbr_bedrooms = st.slider('Number of Bedrooms', min_value=0, max_value=10, value=2)
+
+    # Advanced options expander
+    with st.expander("Select more features to improve the prediction accuracy."):
+        st.markdown("##### Energy and Construction Details")
+        col1, col2 = st.columns(2)
+        with col1:
+            primary_energy_consumption_sqm = st.number_input('Primary Energy Consumption (kWh/m² year)', min_value=0, max_value=10000, step=10)
+        with col2:
+            all_years = list(range(1900, 2101))
+            construction_year = st.selectbox('Choose a year', all_years)
+
+        # Boolean features
+        st.markdown("##### Amenities")
+        col1, col2 = st.columns(2)
+        with col1:
+            fl_garden = st.checkbox('Garden')
+            fl_terrace = st.checkbox('Terrace')
+        with col2:
+            fl_swimming_pool = st.checkbox('Swimming Pool')
+            fl_floodzone = st.checkbox('Flood Zone')
+
     input_data = {
-        #'nbr_bedrooms': nbr_bedrooms,
-        'total_area_sqm': total_area_sqm,
-        #'surface_land_sqm': surface_land_sqm,
-        #'latitude': latitude,
-        #'longitude': longitude,
-        # 'construction_year': construction_year,
-        # 'zip_code': zip_code,
-        'primary_energy_consumption_sqm': primary_energy_consumption_sqm,
-        # 'fl_garden': fl_garden,
-        # 'fl_terrace': fl_terrace,
-        # 'fl_swimming_pool': fl_swimming_pool,
-        # 'fl_floodzone': fl_floodzone,
-        # 'property_type': property_type
-        }
-    
-    # POST request to the API
-    
-    response = requests.post(url, json=input_data)
-    
-    if response.status_code == 200:
-        prediction = response.json()['predicted_price']
-        st.success(f'Predicted Property Price: ${prediction:.2f}')
-    else:
-        st.error('Error in prediction')
+                'property_type': property_type if property_type != '' else None,
+                'latitude': latitude if latitude != 0.0 else None,
+                'longitude': longitude if longitude != 0.0 else None,
+                'region': region if region != '' else None,
+                'zip_code': zip_code if zip_code != '' else None,
+                'locality': locality if locality != '' else None,
+                'subproperty_type': subproperty_type if subproperty_type != '' else None,
+                'total_area_sqm': total_area_sqm,
+                'nbr_bedrooms': nbr_bedrooms,
+                'primary_energy_consumption_sqm': primary_energy_consumption_sqm if primary_energy_consumption_sqm > 0 else None,
+                'construction_year': construction_year if construction_year > 0 else None,
+                'fl_garden': fl_garden,
+                'fl_terrace': fl_terrace,
+                'fl_swimming_pool': fl_swimming_pool,
+                'fl_floodzone': fl_floodzone
+            }
+    # Predict button
+    if st.button('Predict the property price'):        
+        url = 'http://localhost:8501/predict'
+        # Sending None for the fields that are not filled by the user
+        for key in input_data.keys():
+            if isinstance(input_data[key], str) and not input_data[key].strip():
+                input_data[key] = None
 
+        with st.spinner('Predicting...'):
+             # POST request to the API
+            response = requests.post(url, json=input_data)
+            if response.status_code == 200:
+                prediction = response.json()['predicted_price']
+                st.success(f'Predicted Property Price: ${prediction:.2f}')
+            else:
+                st.error('Error in prediction')
+          
+
+if __name__ == '__main__':
+    main()
