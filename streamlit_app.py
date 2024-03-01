@@ -8,13 +8,12 @@ def main():
     st.markdown('##### Choose some features to start the price prediction')
 
     # Property type selection 
-    property_type_options = ['', 'House', 'Apartment', 'Villa', 'Mansion']
+    property_type_options = ['', 'House', 'Apartment']
     property_type = st.selectbox(
         "Property Type:",
         property_type_options,
         index=0,
-        format_func=lambda x: "Select Property Type" if x == '' else x + " 🏠" if x == "House" else x + " 🏢" if x == "Apartment" else x + " 🏰" if x == "Villa" else x + " 🏛️" if x == "Mansion" else x
-    )
+        format_func=lambda x: "Select Property Type" if x == '' else x + " 🏠" if x == "House" else x + " 🏢" if x == "Apartment" else x)
 
     # Latitude and Longitude (To Replace with a map)
     col1, col2 = st.columns(2)
@@ -33,13 +32,21 @@ def main():
 
     # Locality and Subproperty Type
     col1, col2 = st.columns(2)
+    locality_options = ['', 'Aalst', 'Antwerp', 'Arlon', 'Ath', 'Bastogne', 'Brugge', 'Brussels', 
+                        'Charleroi', 'Dendermonde', 'Diksmuide', 'Dinant', 'Eeklo', 'Gent', 
+                        'Halle-Vilvoorde', 'Hasselt', 'Huy', 'Ieper', 'Kortrijk', 'Leuven', 
+                        'Liege', 'Maaseik', 'Marche-en-Famenne', 'Mechelen', 'Mons', 'Mouscron', 
+                        'Namur', 'Neufchateau', 'Nivelles', 'Oostend', 'Oudenaarde', 'Philippeville', 
+                        'Roeselare', 'Sint-Niklaas', 'Soignies', 'Thuin', 'Tielt', 'Tongeren', 'Tournai', 
+                        'Turnhout', 'Verviers', 'Veurne', 'Virton', 'Waremme']
     with col1:
-        locality_options = ['', 'City Center', 'Suburbs', 'Countryside']
         locality = st.selectbox('Locality', locality_options, index=0, format_func=lambda x: "Select Locality" if x == '' else x)
+    subproperty_type_options = ['', 'APARTMENT', 'APARTMENT_BLOCK', 'BUNGALOW', 'CHALET', 'COUNTRY_COTTAGE', 
+                                'DUPLEX-TRIPLEX', 'EXCEPTIONAL_PROPERTY_MANOR_HOUSE_CASTEL', 'FARMHOUSE', 
+                                'FLAT_STUDIO_KOT', 'GROUND_FLOOR', 'HOUSE', 'LOFT_PENTHOUSE', 'MANSION', 
+                                'MIXED_USE_BUILDING', 'OTHER_PROPERTY', 'SERVICE_FLAT', 'TOWN_HOUSE', 'VILLA']
     with col2:
-        subproperty_type_options = ['', 'Bungalow', 'Duplex', 'Loft', 'Penthouse']
         subproperty_type = st.selectbox('Subproperty Type', subproperty_type_options, index=0, format_func=lambda x: "Select Subproperty Type" if x == '' else x)
-
     # Total Area and Bedrooms
     total_area_sqm = st.slider('Total Area (sqm)', min_value=0, max_value=1000, value=120)
     nbr_bedrooms = st.slider('Number of Bedrooms', min_value=0, max_value=10, value=2)
@@ -80,6 +87,7 @@ def main():
                 'fl_terrace': fl_terrace,
                 'fl_swimming_pool': fl_swimming_pool,
                 'fl_floodzone': fl_floodzone
+
             }
     # Predict button
     if st.button('Predict the property price'):        
