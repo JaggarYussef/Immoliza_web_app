@@ -1,0 +1,10 @@
+// {
+//   "dockerRun": {
+//     "volumes": [
+//       {
+//         "containerPath": "/app",
+//         "localPath": "${workspaceFolder}"
+//       }
+//     ]
+//   }
+// }
