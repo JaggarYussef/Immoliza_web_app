@@ -1,5 +1,3 @@
-#train
-
 import joblib
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor # NEW
@@ -8,86 +6,26 @@ from sklearn.linear_model import LinearRegression # OLD
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-import os 
+
 
 def train():
-    
-    
-    
     """Trains a linear regression model on the full dataset and stores output."""
     # Load the data
-    
-    # Obtenez le répertoire du script Python en cours d'exécution
-    repertoire_script = os.path.dirname(os.path.abspath(__file__))
+    data = pd.read_csv("data/data_input.csv", delimiter=';', encoding='ISO-8859-1')   #data/data_inut....
 
-    
-    # Spécifiez le nom du fichier que vous voulez ouvrir
-    nom_fichier = 'data_input.csv'  # Remplacez 'input.csv' par le nom de votre fichier
-       
-    # Chemin complet vers le fichier
-    chemin_fichier = os.path.join(repertoire_script, nom_fichier)
-
-    # Imprimer le chemin complet utilisé pour ouvrir le fichier
-    print(f"Chemin complet utilisé pour ouvrir le fichier : {chemin_fichier}")
-
-    # Charger le fichier CSV avec le délimiteur correct
-    data  = pd.read_csv(chemin_fichier, delimiter=';', encoding='ISO-8859-1', index_col=0)
-       
-    
-
-        
-    # Imprimer les noms de colonnes du DataFrame
-    print("Noms de colonnes du DataFrame:")
-    print(data.columns.tolist())  # Convertir les noms de colonnes en une liste et les imprimer
-    
-    print(data.index)
-    print("ok................................................")
-    
     # Define features to use
-    num_features = [
-        'total_area_sqm',
-        'nbr_bedrooms',
-        'zip_code', 
-        'latitude', 
-        'longitude', 
-        'primary_energy_consumption_sqm',
-        'surface_land_sqm',
-        'density',
-        'construction_year',
-        'garden_sqm', 'terrace_sqm',
-        #'prix_m2',
-        'prix_m2_y',
-        'cadastral_income',
-        'nbr_frontages',
-        
+    num_features = ['sq_nbr_bedrooms', 'total_area_sqm', 'total_area_sqm2', 
+                 'sq_surface_land_sqm', 'total_area_sqm2',
+                 'mean_up__zip_code', 'sq_nbr_frontages',
+                 'min_zip_code', 
+                 'terrace_sqm', 
+                 'density', 
+                 'construction_year',
+                 'primary_energy_consumption_sqm', 
         ]
-    fl_features = [
-        'fl_garden', 
-        'fl_terrace',
-        'fl_swimming_pool',   # suppr change rien
-        'fl_floodzone',       # suppr aumente le train et diminue le test 
+    fl_features = []
+    cat_features = ['subproperty_type', 'locality', 'state_building']
         
-        'fl_furnished',      # suppr aumente le test et diminue le train
-        'fl_open_fire',
-        #'fl_double_glazing'
-            
-        
-        ]
-    cat_features = [
-        'property_type', 
-        'subproperty_type',
-        'region', 
-        'province', 
-        'locality',
-        'equipped_kitchen',
-        'state_building',
-        
-        #'heating_type', 
-        ##'epc'
-        ]
-    
-
-    
 
     # Split the data into features and target
     X = data[num_features + fl_features + cat_features]
@@ -126,8 +64,6 @@ def train():
         ],
         axis=1,
     )
-
-    print(f"Features: \n {X_train.columns.tolist()}")
 
     # Train the model using HistGradientBoostingRegressor
     model = HistGradientBoostingRegressor()
